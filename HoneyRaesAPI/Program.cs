@@ -211,6 +211,71 @@ app.MapPost("/servicetickets/{id}/complete", (int id) =>
     ticketToComplete.DateCompleted = DateTime.Today;
 });
 
+app.MapPost("/servicetickets/{id}/complete", (int id) =>
+{
+    ServiceTicket ticketToComplete = ServiceTicket.FirstOrDefault(st => st.Id == id);
+    ticketToComplete.DateCompleted = DateTime.Today;
+});
+
+/*app.MapGet("/servicetickets/emergency", () =>
+{
+    List<ServiceTicket> emergencyTicket = ServiceTicket.Where(st => st.Emergency == true && st.DateCompleted == null).ToList();
+    return Results.Ok(emergencyTicket);
+});
+
+app.MapGet("/servicetickets/unassigned", () =>
+{
+    List<ServiceTicket> unassignedTickets = ServiceTicket.Where(st => st.EmployeeId == null).ToList();
+    return Results.Ok(unassignedTickets);
+});
+
+app.MapGet("servicetickets/inactive", () =>
+{
+    DateTime oneYearAgo = DateTime.Today.AddYears(-1);
+    List<int> activeCustomerIds = ServiceTicket.Where(ticket => ticket.DateCompleted >= oneYearAgo).Select(ticket => ticket.CustomerId).ToList();
+    List<Customer> inactiveCustomers = Customers.Where(customer => !activeCustomerIds.Contains(customer.Id)).ToList();
+    return Results.Ok(inactiveCustomers);
+});
+
+app.MapGet("/servicetickets/employee/unassigned", () =>
+{
+    List<Employee> unassignedEmployees = employees.Where(emp => ServiceTicket.All(st => st.EmployeeId != emp.Id)).ToList();
+    return Results.Ok(unassignedEmployees);
+});
+
+app.MapGet("/servicetickets/employee/{id}", (int id) => {
+    var employee = employees.FirstOrDefault(e => e.Id == id);
+    if (employee == null)
+    {
+        return Results.NotFound();
+    }
+
+    var employeeCustomers = Customers.Where(c => ServiceTicket.Any(st => st.CustomerId == c.Id && st.EmployeeId == id));
+    return Results.Ok(employeeCustomers);
+});
+
+app.MapGet("/employeeofthemonth", () =>
+{
+    var lastMonth = DateTime.Now.AddMonths(-1);
+    var employeeOfTheMonth = employees.OrderByDescending(e => ServiceTicket.Count(st => st.EmployeeId == e.Id && st.DateCompleted >= lastMonth)).FirstOrDefault();
+    return Results.Ok(employeeOfTheMonth);
+});
+
+app.MapGet("/completedtickets", () =>
+{
+    var completedTickets = ServiceTicket.Where(st => st.DateCompleted != null).OrderBy(st => st.DateCompleted);
+    return Results.Ok(completedTickets);
+});
+
+app.MapGet("/prioritizedtickets", () =>
+{
+    var prioritizedTickets = ServiceTicket
+        .Where(st => st.DateCompleted == null)
+        .OrderByDescending(st => st.Emergency)
+        .ThenBy(st => st.EmployeeId == 0);
+    return Results.Ok(prioritizedTickets);
+});*/
+
 app.Run();
 
 /*record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
