@@ -208,19 +208,18 @@ app.MapPut("/servicetickets/{id}", (int id, ServiceTicket serviceTicket) =>
 app.MapPost("/servicetickets/{id}/complete", (int id) =>
 {
     ServiceTicket ticketToComplete = ServiceTicket.FirstOrDefault(st => st.Id == id);
+    if (ticketToComplete == null)
+    {
+        return Results.NotFound();
+    }
     ticketToComplete.DateCompleted = DateTime.Today;
+    return Results.Ok(ticketToComplete);
 });
 
-app.MapPost("/servicetickets/{id}/complete", (int id) =>
+app.MapGet("/servicetickets/emergency", () =>
 {
-    ServiceTicket ticketToComplete = ServiceTicket.FirstOrDefault(st => st.Id == id);
-    ticketToComplete.DateCompleted = DateTime.Today;
-});
-
-/*app.MapGet("/servicetickets/emergency", () =>
-{
-    List<ServiceTicket> emergencyTicket = ServiceTicket.Where(st => st.Emergency == true && st.DateCompleted == null).ToList();
-    return Results.Ok(emergencyTicket);
+    List<ServiceTicket> emergencyTickets = ServiceTicket.Where(st => st.Emergency && st.DateCompleted == null).ToList();
+    return Results.Ok(emergencyTickets);
 });
 
 app.MapGet("/servicetickets/unassigned", () =>
@@ -229,7 +228,7 @@ app.MapGet("/servicetickets/unassigned", () =>
     return Results.Ok(unassignedTickets);
 });
 
-app.MapGet("servicetickets/inactive", () =>
+app.MapGet("/servicetickets/inactive", () =>
 {
     DateTime oneYearAgo = DateTime.Today.AddYears(-1);
     List<int> activeCustomerIds = ServiceTicket.Where(ticket => ticket.DateCompleted >= oneYearAgo).Select(ticket => ticket.CustomerId).ToList();
@@ -243,15 +242,16 @@ app.MapGet("/servicetickets/employee/unassigned", () =>
     return Results.Ok(unassignedEmployees);
 });
 
-app.MapGet("/servicetickets/employee/{id}", (int id) => {
+app.MapGet("/servicetickets/employee/{id}", (int id) =>
+{
     var employee = employees.FirstOrDefault(e => e.Id == id);
     if (employee == null)
     {
         return Results.NotFound();
     }
 
-    var employeeCustomers = Customers.Where(c => ServiceTicket.Any(st => st.CustomerId == c.Id && st.EmployeeId == id));
-    return Results.Ok(employeeCustomers);
+    var employeeTickets = ServiceTicket.Where(st => st.EmployeeId == id);
+    return Results.Ok(employeeTickets);
 });
 
 app.MapGet("/employeeofthemonth", () =>
@@ -272,11 +272,12 @@ app.MapGet("/prioritizedtickets", () =>
     var prioritizedTickets = ServiceTicket
         .Where(st => st.DateCompleted == null)
         .OrderByDescending(st => st.Emergency)
-        .ThenBy(st => st.EmployeeId == 0);
+        .ThenBy(st => st.EmployeeId == null); // Use null to filter unassigned tickets.
     return Results.Ok(prioritizedTickets);
-});*/
+});
 
 app.Run();
+
 
 /*record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
